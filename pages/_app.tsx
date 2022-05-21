@@ -1,11 +1,15 @@
 import { AppProps } from 'next/app';
+import Header from '../components/Header';
 import GlobalStyle from '../styles/GlobalStyle';
 
 const App = ({ Component, pageProps }: AppProps) => {
   return (
     <>
       <GlobalStyle />
+      <Header />
       <Component {...pageProps} />
+      {/* 모달 담을 DOM element */}
+      <div id="root-modal"/>
     </>
   );
 };
