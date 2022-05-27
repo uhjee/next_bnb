@@ -775,5 +775,210 @@ export default ModalPortal;
 hooks/useModal.tsx
 
 ```tsx
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import styled from 'styled-components';
+
+/**
+ * 모달 사용을 위해
+ *   1. 포탈을 통해 #root-modal 엘레먼트로 컴포넌트 전달
+ *   2. 모달 open 함수, close 함수 반환
+ */
+
+const Container = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  .modal-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 10;
+  }
+`;
+
+const useModal = () => {
+  // 모달 활성화 여부
+  const [modalOpened, setModalOpened] = useState(false);
+
+  const openModal = () => setModalOpened(true);
+  const closeModal = () => setModalOpened(false);
+
+  interface IProps {
+    children: React.ReactNode;
+  }
+
+  // Component 
+  const ModalPortal: React.FC<IProps> = ({ children }) => {
+    const ref = useRef<Element | null>();
+    const [mounted, setMounted] = useState(false);
+
+    /**
+     * 렌더링 시, #root-modal 엘레먼트 잡아와서 ref에 세팅
+     */
+    useEffect(() => {
+      setMounted(true);
+      if (document) {
+        const dom = document.querySelector('#root-modal');
+        // ref에 DOM element 세팅
+        ref.current = dom;
+      }
+    }, []);
+
+    if (ref.current && mounted && modalOpened) {
+      return createPortal(
+        // 인자 1: 포탈을 통해 전달할 react 컴포넌트
+        <Container>
+          <div
+            className="modal-background"
+            role="presetaion"
+            onClick={closeModal}
+          />
+          {children}
+        </Container>,
+        // 인자 2: 전달할 react 컴포넌트가 담길 DOM element
+        ref.current,
+      );
+    }
+    return null;
+  };
+
+  return {
+    openModal,
+    closeModal,
+    ModalPortal,
+  };
+};
+
+export default useModal;
+
+```
+
+components/Header.tsx
+
+```tsx
+import Link from 'next/link';
+import { useState } from 'react';
+import styled from 'styled-components';
+import useModal from '../hooks/useModal';
+import AirbnbLogoIcon from '../public/static/svg/logo/logo.svg';
+import AirbnbLogoTextIcon from '../public/static/svg/logo/logo_text.svg';
+import palette from '../styles/palette';
+import SignUpModal from './auth/SignUpModal';
+import ModalPortal from './ModalPortal';
+
+// ...
+
+const Header: React.FC = () => {
+  // custom hook : useModal 사용
+  const { openModal, ModalPortal } = useModal();
+  
+  return (
+    <Container>
+			// ...
+      <div className="header-auth-buttons">
+        <button className="header-sign-up-button" onClick={openModal}>
+          회원가입
+        </button>
+        <button className="header-login-button">로그인</button>
+      </div>
+      <ModalPortal>
+        <SignUpModal />
+      </ModalPortal>
+    </Container>
+  );
+};
+
+export default Header;
+
+```
+
+---
+
+# 10. 회원 가입과 로그인
+
+compoenents/auth/SignupModal.tsx
+
+- 퍼블리싱
+
+```tsx
+import styled from 'styled-components';
+import palette from '../../styles/palette';
+import CloseXIcon from '../../public/static/svg/modal/close_x_icon.svg';
+import MailIcon from '../../public/static/svg/auth/mail.svg';
+import ClosedEyeIcon from '../../public/static/svg/auth/closed-eye.svg';
+import OpenedEyeIcon from '../../public/static/svg/auth/opened-eye.svg';
+import PersonIcon from '../../public/static/svg/auth/person.svg';
+
+const Container = styled.form`
+  width: 568px;
+  padding: 32px;
+  /* height: 614px; */
+  background-color: #fff;
+  z-index: 11;
+
+  .modal-close-x-icon {
+    cursor: pointer;
+    display: block;
+    margin: 0 0 40px auto;
+  }
+
+  .input-wrapper {
+    position: relative;
+    margin-bottom: 16px;
+    input {
+      position: relative;
+      width: 100%;
+      height: 46px;
+      padding: 0 44px 0 11px;
+      border: 1px solid ${palette.gray_eb};
+      border-radius: 4px;
+      font-size: 16px;
+      outline: none;
+      ::placeholder {
+        color: ${palette.gray_76};
+      }
+    }
+    svg {
+      position: absolute;
+      right: 11px;
+      top: 16px;
+    }
+  }
+`;
+
+const SignUpModal: React.FC = () => {
+  return (
+    <Container>
+      <CloseXIcon className="modal-close-x-icon" />
+      <div className="input-wrapper">
+        <input type="email" name="eamil" placeholder="이메일 주소" />
+        <MailIcon />
+      </div>
+      <div className="input-wrapper">
+        <input placeholder="이름(예: 살바도르)" />
+        <PersonIcon />
+      </div>
+      <div className="input-wrapper">
+        <input placeholder="성(예: 달리)" />
+        <PersonIcon />
+      </div>
+      <div className="input-wrapper">
+        <input placeholder="비밀번호 설정하기" type="password" />
+        <OpenedEyeIcon />
+      </div>
+    </Container>
+  );
+};
+
+export default SignUpModal;
+Ï
 ```
 

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 
-
 /**
  * 모달 사용을 위해
  *   1. 포탈을 통해 #root-modal 엘레먼트로 컴포넌트 전달
@@ -26,12 +25,6 @@ const Container = styled.div`
     background-color: rgba(0, 0, 0, 0.75);
     z-index: 10;
   }
-  /* .modal-contents {
-      width: 400px;
-      height: 400px;
-      background-color: #fff;
-      z-index: 11;
-    } */
 `;
 
 const useModal = () => {
@@ -45,6 +38,7 @@ const useModal = () => {
     children: React.ReactNode;
   }
 
+  // Component 
   const ModalPortal: React.FC<IProps> = ({ children }) => {
     const ref = useRef<Element | null>();
     const [mounted, setMounted] = useState(false);
@@ -85,6 +79,5 @@ const useModal = () => {
     ModalPortal,
   };
 };
-
 
 export default useModal;
