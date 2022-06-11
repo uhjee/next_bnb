@@ -979,6 +979,233 @@ const SignUpModal: React.FC = () => {
 };
 
 export default SignUpModal;
-Ï
 ```
 
+---
+
+# 10. 회원가입, 로그인
+
+## 10.1 회원가입 인풋
+
+### 10.1.1 디자인 시스템
+
+일관된 스타일, 재사용성을 위해 컴포넌트 마다 디자인 시스템 적용
+
+e.g. input, button ... 
+
+### 10.1.2 공통 input 컴포넌트
+
+components/common/Input.tsx
+
+```tsx
+import styled from 'styled-components';
+import palette from '../../styles/palette';
+
+// generic으로 styled Component의 props에 타입 추가
+const Container = styled.div<{ iconExist: boolean }>`
+  input {
+    position: relative;
+    width: 100%;
+    height: 46px;
+    padding: ${({ iconExist }) => (iconExist ? '0 44px 0 11px' : '0 11px')};
+    border: 1px solid ${palette.gray_eb};
+    border-radius: 4px;
+    font-size: 16px;
+    outline: none;
+    ::placeholder {
+      color: ${palette.gray_76};
+    }
+
+    &:focus {
+      border-color: ${palette.Amaranth} !important;
+    }
+  }
+  .input-icon-wrapper {
+    position: absolute;
+    top: 0;
+    right: 11px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+  }
+`;
+
+// React.InputHTMLAttributes<HTMLInputElement> :: <input> 태그가 가지는 속성들에 대한 타입
+interface IProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  icon?: JSX.Element;
+}
+
+const Input: React.FC<IProps> = ({ icon, ...props }) => {
+  return (
+    // styled Component에 props로 변수 전달
+    <Container iconExist={!!icon}>
+      <input {...props} />
+      <div className="input-icon-wrapper">{icon}</div>
+    </Container>
+  );
+};
+
+export default Input;
+
+```
+
+- React.InputHTMLAttributes<HTMLInputElement> :: <input> 태그가 가지는 속성들에 대한 타입
+
+  ```tsx
+  // React.InputHTMLAttributes<HTMLInputElement> :: <input> 태그가 가지는 속성들에 대한 타입
+  interface IProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    icon?: JSX.Element;
+  }
+  ```
+
+  
+
+- generic으로 styled Component의 props에 타입 추가
+
+  ```tsx
+  // 선언
+  const Container = styled.div<{ iconExist: boolean }>`
+  `;
+  
+  // ...
+  
+  // 호출
+  <Container iconExist={!!icon}>
+  
+  ```
+
+  
+
+Input 컴포넌트 사용
+
+components/auth/SignUpModel.tsx
+
+```tsx
+import styled from 'styled-components';
+import palette from '../../styles/palette';
+import CloseXIcon from '../../public/static/svg/modal/close_x_icon.svg';
+import MailIcon from '../../public/static/svg/auth/mail.svg';
+import ClosedEyeIcon from '../../public/static/svg/auth/closed-eye.svg';
+import OpenedEyeIcon from '../../public/static/svg/auth/opened-eye.svg';
+import PersonIcon from '../../public/static/svg/auth/person.svg';
+import Input from '../common/Input';
+import React, { useState } from 'react';
+
+const Container = styled.form`
+  width: 568px;
+  padding: 32px;
+  /* height: 614px; */
+  background-color: #fff;
+  z-index: 11;
+
+  .modal-close-x-icon {
+    cursor: pointer;
+    display: block;
+    margin: 0 0 40px auto;
+  }
+
+  .input-wrapper {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .sign-up-password-input-wrapper {
+    svg {
+      cursor: pointer;
+    }
+  }
+`;
+
+const SignUpModal: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [lastname, setLastname] = useState('');
+  const [firstname, setFirstname] = useState('');
+  const [password, setPassword] = useState('');
+
+  /**
+   * 이메일 변경 이벤트 핸들러
+   * @param event
+   */
+  const onChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setEmail(event.target.value);
+  /**
+   * 이메일 변경 이벤트 핸들러
+   * @param event
+   */
+  const onChangeLastname = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setLastname(event.target.value);
+  /**
+   * 이메일 변경 이벤트 핸들러
+   * @param event
+   */
+  const onChangeFirstname = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setFirstname(event.target.value);
+  /**
+   * 이메일 변경 이벤트 핸들러
+   * @param event
+   */
+  const onChangePassword = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setPassword(event.target.value);
+
+  // 비밀번호 표현 여부 토글
+  const [hidePassword, setHidePassword] = useState(true);
+
+  const toggleHidePassword = () => setHidePassword(!hidePassword);
+
+  return (
+    <Container>
+      <CloseXIcon className="modal-close-x-icon" />
+      <div className="input-wrapper">
+        <Input
+          type="email"
+          name="eamil" // name: email은 브라우저가 저장할 수 있도록 해줌
+          placeholder="이메일 주소"
+          icon={<MailIcon />}
+          value={email}
+          onChange={onChangeEmail}
+        />
+      </div>
+      <div className="input-wrapper">
+        <Input
+          placeholder="이름(예: 살바도르)"
+          icon={<PersonIcon />}
+          value={lastname}
+          onChange={onChangeLastname}
+        />
+      </div>
+      <div className="input-wrapper">
+        <Input
+          placeholder="성(예: 달리)"
+          icon={<PersonIcon />}
+          value={firstname}
+          onChange={onChangeFirstname}
+        />
+      </div>
+      <div className="input-wrapper sign-up-password-input-wrapper">
+        <Input
+          placeholder="비밀번호 설정하기"
+          type={hidePassword ? 'password' : 'text'} // input 값이 *로 대체되어 보임
+          icon={
+            hidePassword ? (
+              <OpenedEyeIcon onClick={toggleHidePassword} />
+            ) : (
+              <ClosedEyeIcon onClick={toggleHidePassword} />
+            )
+          }
+          value={password}
+          onChange={onChangePassword}
+        />
+      </div>
+    </Container>
+  );
+};
+
+export default SignUpModal;
+
+```
+
+
+
+- 상태값 관리
+  - emial, firstname, lastname, password
+
+- input 엘레먼트의 type 속성 -  password    |  text
