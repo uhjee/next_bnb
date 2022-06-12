@@ -67,7 +67,7 @@ const Container = styled.div`
 const Header: React.FC = () => {
   // custom hook : useModal 사용
   const { openModal, ModalPortal } = useModal();
-  
+
   return (
     <Container>
       {/* Link 컴포넌트 사용해 기본 페이지로 이동 */}
@@ -79,9 +79,9 @@ const Header: React.FC = () => {
       </Link>
       <div className="header-auth-buttons">
         <button className="header-sign-up-button" onClick={openModal}>
-          회원가입
+          Sign Up
         </button>
-        <button className="header-login-button">로그인</button>
+        <button className="header-login-button">Sign In</button>
       </div>
       <ModalPortal>
         <SignUpModal />
