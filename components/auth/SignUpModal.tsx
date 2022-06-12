@@ -10,6 +10,7 @@ import Selector from '../common/Selector';
 
 import { monthList, dayList, yearList } from '../../lib/staticData';
 import React, { useState } from 'react';
+import Button from '../common/Button';
 
 const Container = styled.form`
   width: 568px;
@@ -189,6 +190,9 @@ const SignUpModal: React.FC = () => {
             onChange={onChangeBirthYear}
           />
         </div>
+      </div>
+      <div className="sign-up-modal-submit-button-wrapper">
+        <Button type="submit">Sign up</Button>
       </div>
     </Container>
   );
