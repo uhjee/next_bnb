@@ -11,6 +11,7 @@ import Selector from '../common/Selector';
 import { monthList, dayList, yearList } from '../../lib/staticData';
 import React, { useState } from 'react';
 import Button from '../common/Button';
+import { signupAPI } from '../../lib/api/auth';
 
 const Container = styled.form`
   width: 568px;
@@ -113,8 +114,31 @@ const SignUpModal: React.FC = () => {
   const onChangeBirthMonth = (event: React.ChangeEvent<HTMLSelectElement>) =>
     setBirthMonth(event.target.value);
 
+  /**
+   * 회원가입 API를 호출한다.
+   * @param event
+   */
+  const onSubmitSignup = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    try {
+      const signUpBody = {
+        email,
+        lastname,
+        firstname,
+        password,
+        birthday: new Date(
+          `${birthYear}-${birthMonth!.replace('월', '')}-${birthDay}`,
+        ).toISOString(),
+      };
+      await signupAPI(signUpBody);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
-    <Container>
+    <Container onSubmit={onSubmitSignup}>
       <CloseXIcon className="modal-close-x-icon" />
       <div className="input-wrapper">
         <Input

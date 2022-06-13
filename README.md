@@ -1396,6 +1396,8 @@ export const yearList = Array.from(Array(121), (_, i) => String(2020 - i));
 
 ```
 
+---
+
 ## 10.3 회원가입 버튼
 
 components/common/Button.tsx
@@ -1426,6 +1428,262 @@ const Button: React.FC<IProps> = ({ children, ...props }) => {
 };
 
 export default Button;
+
+```
+
+---
+
+## 10.4 회원가입 API
+
+ *    1. api method 가 POST 인지 확인
+ *    2. req.body에 필요한 파라미터가 들어있는지 확인
+ *    3. email duplication check
+ *    4. password encode
+ *    5. 유저 정보 추가
+ *    6. 추가된 유저의 정보와 token 전달
+
+types/user.d.ts
+
+```typescript
+//** users.json 에 저장된 유저 타입 */
+export type StoredUserType = {
+  id: number;
+  email: string;
+  password: string;
+  firstname: string;
+  lastname: string;
+  birthday: string;
+  profileImage: string;
+};
+```
+
+lib/data/user.ts
+
+```typescript
+import { readFileSync, writeFileSync } from 'fs';
+import { StoredUserType } from '../../types/user';
+
+/**
+ * User fs 함수들
+ */
+
+/**
+ * 유저 리스트 데이터 불러오기
+ *
+ * @return  {[StoredUserType[]]}  [return description]
+ */
+const getList = () => {
+  const filePath = 'data/user.json';
+  const usersBuffer = readFileSync(filePath);
+  const userString = usersBuffer.toString();
+
+  if (!userString) {
+    return [];
+  }
+
+  const users: StoredUserType[] = JSON.parse(userString);
+  return users;
+};
+
+/**
+ * 특정 email을 가진 유저가 있는지 확인하기
+ *
+ * @param   {string}  email  [email description]
+ *
+ * @return  {[boolean]}         [return description]
+ */
+const exist = ({ email }: { email: string }): boolean => {
+  const users = getList();
+  return users.some(user => user.email === email);
+};
+
+/**
+ * 유저 리스트 저장하기
+ *
+ * @param   {StoredUserType[]}  users  [users description]
+ *
+ */
+const write = async (users: StoredUserType[]) => {
+  writeFileSync('data/users.json', JSON.stringify(users));
+};
+
+export default {
+  getList,
+  exist,
+  write,
+};
+```
+
+
+
+pages/api/auth/signup.js
+
+```typescript
+import { NextApiRequest, NextApiResponse } from 'next';
+import Data from '../../../lib/data';
+
+/**
+ * 회원을 추가한다.(회원가입)
+ *    1. api method 가 POST 인지 확인
+ *    2. req.body에 필요한 파라미터가 들어있는지 확인
+ *    3. email duplication check
+ *    4. password encode
+ *    5. 유저 정보 추가
+ *    6. 추가된 유저의 정보와 token 전달
+ * @author  uhjee
+ * @param   {NextApiRequest}   req  [req description]
+ * @param   {NextApiResponse}  res  [res description]
+ *
+ * @return  {[NextApiResponse]}                [return description]
+ */
+export default async (req: NextApiRequest, res: NextApiResponse) => {
+  if (req.method === 'POST') {
+    // 파라미터 확인
+    const { email, firstname, lastname, password, birthday } = req.body;
+    if (!email || !firstname || !lastname || !password || !birthday) {
+      res.statusCode = 400;
+      return res.send('필수 데이터가 없습니다.');
+    }
+
+    // email 중복 확인
+    const userExist = Data.user.exist({ email });
+    if (userExist) {
+      res.statusCode = 409;
+      res.send('이미 가입된 이메일입니다.');
+    }
+
+    return res.end();
+  }
+  res.statusCode = 405;
+
+  return res.end();
+};
+
+```
+
+### 10.4.2 비밀번호 암호화 하기
+
+### bcrypjs
+
+- 암-복호화 라이브러리
+
+```shell
+yarn add bcryptjs
+yarn add @types/bcryptjs -D
+```
+
+
+
+pages/api/auth/signup.ts - 
+
+```typescript
+// ...
+    // 비밀번호 복호화
+    const salt = bcrypt.genSaltSync(10); // hash 해킹 방지 값
+    const hashedPassword = bcrypt.hashSync(password, salt);
+// ...
+```
+
+
+
+### 10.4.3. JWT 토큰 생성하기
+
+### JWT; json web token
+
+전자서명된 URL로 이용할 수 있는 문자만 구성된 JSON
+
+```shell
+yarn add jsonwebtoken
+yarn add @types/jsonwebtoken
+```
+
+.env.local
+
+```json
+JWT_SECRET=my_private_secret
+```
+
+pages/api/auth/signup.ts 
+
+- cookie에 저장
+
+```typescript
+    // JWT - cookie 세팅
+    const token = jwt.sign(String(newUser.id), process.env.JWT_SECRET!);
+
+    res.setHeader(
+      'Set-Cookie',
+      `access_token=${token}; path=/; expires=${new Date(
+        Date.now() + 60 * 60 * 24 * 3 * 1000, // 3일
+      )}; httponly`,
+    );
+```
+
+
+
+### api 생성
+
+lib/api/index.ts
+
+```typescript
+import Axios from 'axios';
+
+const axios = Axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
+
+export default axios;
+```
+
+lib/api/auth.ts
+
+```typescript
+import axios from '.';
+
+// 회원가입 body
+interface SignUpAPIBody {
+  email: string;
+  firstname: string;
+  lastname: string;
+  password: string;
+  birthday: string;
+}
+
+// 회원가입 API
+export const signupAPI = (body: SignUpAPIBody) =>
+  axios.post('/api/auth/signup', body);
+
+```
+
+components/auth/SignUpModal.tsx
+
+```tsx
+  /**
+   * 회원가입 API를 호출한다.
+   * @param event
+   */
+  const onSubmitSignup = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    try {
+      const signUpBody = {
+        email,
+        lastname,
+        firstname,
+        password,
+        birthday: new Date(
+          `${birthYear}-${birthMonth!.replace('월', '')}-${birthDay}`,
+        ).toISOString(),
+      };
+      await signupAPI(signUpBody);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+// ...
+
+    <Container onSubmit={onSubmitSignup}>
 
 ```
 
