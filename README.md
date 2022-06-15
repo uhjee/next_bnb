@@ -1744,3 +1744,101 @@ export const signupAPI = (body: SignUpAPIBody) =>
 
 ```
 
+### 10.5.1 유저 리덕스 모듈 생성
+
+```sh
+$ yarn add next-redux-wrapper @reduxjs/toolkit react-redux redux
+$ yarn add @types/react-redux
+```
+
+store/user.ts
+
+```typescript
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { UserState } from '../types/reduxState';
+import { UserType } from '../types/user';
+
+// * 초기 상태값
+const initialState: UserState = {
+  id: 0,
+  email: '',
+  lastname: '',
+  firstname: '',
+  birthday: '',
+  isLogged: false,
+  profileImage: '',
+};
+
+// createSlice 함수 호출 - Action 및 reducer 선언 후 생성해줌 Slice 반환
+// Slice 인터페이스는 actions, reducer, getInitailState 등을 속성으로 갖는다.
+const user = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {
+    // * 로그인한 유저 변경하기
+    // payload를 갖는 Action 타입 - generic으로 payload 타입 지정
+    setLoggedUser(state, action: PayloadAction<UserType>) {
+      state = { ...action.payload, isLogged: true };
+      return state;
+    },
+  },
+});
+
+export const userActions = { ...user.actions };
+
+export default user;
+
+```
+
+store/index.ts
+
+```typescript
+import { HYDRATE, createWrapper, MakeStore } from 'next-redux-wrapper';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import user from './user';
+import {
+  TypedUseSelectorHook,
+  useSelector as useReduxSelector,
+} from 'react-redux';
+
+const rootReducer = combineReducers({
+  user: user.reducer,
+});
+
+// * Store의 타입
+export type RootState = ReturnType<typeof rootReducer>;
+
+let initialRootState: RootState;
+
+const reducer = (state: any, action: any) => {
+  // Hydrate: 서버에서 생성된 리덕스 스토어를 클라이언트에서 사용할 수 있도록 전달
+  if (action.type === HYDRATE) {
+    if (state === initialRootState) {
+      return {
+        ...state,
+        ...action.payload,
+      };
+    }
+    return state;
+  }
+  return rootReducer(state, action);
+};
+
+// 타입 지원하는 useSelector로 커스텀 하기
+export const userSelector: TypedUseSelectorHook<RootState> = useReduxSelector;
+
+const initStore: MakeStore<any> = () => {
+  // configureStore 로 store 설정
+  const store = configureStore({
+    reducer,
+    devTools: true,
+  });
+
+  initialRootState = store.getState();
+  return store;
+};
+
+export const wrapper = createWrapper(initStore);
+
+```
+

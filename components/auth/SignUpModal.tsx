@@ -12,6 +12,8 @@ import { monthList, dayList, yearList } from '../../lib/staticData';
 import React, { useState } from 'react';
 import Button from '../common/Button';
 import { signupAPI } from '../../lib/api/auth';
+import { useDispatch } from 'react-redux';
+import { userActions } from '../../store/user';
 
 const Container = styled.form`
   width: 568px;
@@ -114,6 +116,9 @@ const SignUpModal: React.FC = () => {
   const onChangeBirthMonth = (event: React.ChangeEvent<HTMLSelectElement>) =>
     setBirthMonth(event.target.value);
 
+  // Redux
+  const dispatch = useDispatch();
+
   /**
    * 회원가입 API를 호출한다.
    * @param event
@@ -131,7 +136,10 @@ const SignUpModal: React.FC = () => {
           `${birthYear}-${birthMonth!.replace('월', '')}-${birthDay}`,
         ).toISOString(),
       };
-      await signupAPI(signUpBody);
+
+      const { data } = await signupAPI(signUpBody);
+      // redux에 회원가입F된 유저정보 저장
+      dispatch(userActions.setLoggedUser(data));
     } catch (e) {
       console.log(e);
     }
