@@ -1687,3 +1687,60 @@ components/auth/SignUpModal.tsx
 
 ```
 
+## 10.5 유저 정보 저장하기
+
+/pages/api/auth/signup.ts
+
+### Partial<Pick<StoredUserType, 'password'>>
+
+- Partial: 특정 타입의 부분 집합을 만족하는 타입 정의
+- Pick: 특정 타입에서 몇 개의 속성을 선택해 타입 정의
+
+```typescript
+    // password  삭제한 유저정보 return
+    // ts의 유틸리티 password 속성을 Partial로 만든 타입 - 타입에러 없이 delete 사용 가능
+    const newUserWithoutPassword: Partial<Pick<StoredUserType, 'password'>> =
+      newUser;
+    delete newUserWithoutPassword.password;
+
+    res.statusCode = 200;
+    return res.send(newUser);
+
+// ...
+```
+
+types/user.d.ts
+
+```typescript
+//...
+// ** signUpAPI의 결과 타입 */
+export type UserType = {
+  id: number;
+  email: string;
+  firstname: string;
+  lastname: string;
+  birthday: string;
+  profileImage: string;
+};
+
+```
+
+
+
+lib/api/auth.ts
+
+```typescript
+import { UserType } from '../../types/user';
+
+/**
+ * react 컴포넌트에서 API 호출을 위해 호출하는 함수들
+ */
+
+// ...
+
+// 회원가입 API
+export const signupAPI = (body: SignUpAPIBody) =>
+  axios.post<UserType>('/api/auth/signup', body);
+
+```
+

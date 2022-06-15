@@ -8,3 +8,13 @@ export type StoredUserType = {
   birthday: string;
   profileImage: string;
 };
+
+// ** signUpAPI의 결과 타입 */
+export type UserType = {
+  id: number;
+  email: string;
+  firstname: string;
+  lastname: string;
+  birthday: string;
+  profileImage: string;
+};

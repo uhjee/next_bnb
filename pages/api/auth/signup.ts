@@ -69,9 +69,15 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       )}; httponly`,
     );
 
-    return res.end();
+    // password  삭제한 유저정보 return
+    // ts의 유틸리티 password 속성을 Partial로 만든 타입 - 타입에러 없이 delete 사용 가능
+    const newUserWithoutPassword: Partial<Pick<StoredUserType, 'password'>> =
+      newUser;
+    delete newUserWithoutPassword.password;
+
+    res.statusCode = 200;
+    return res.send(newUser);
   }
   res.statusCode = 405;
-
   return res.end();
 };
