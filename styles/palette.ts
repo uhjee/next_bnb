@@ -19,4 +19,6 @@ export default {
   black_22: '#222',
   snow: '#FFF8F6',
   gray_aa: '#aaa',
+  dark_cyan: '#008489',
+  green: '#008A05',
 };
