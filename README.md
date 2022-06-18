@@ -1958,3 +1958,355 @@ export default Input;
 
 
 
+components/auth/SignUpModal.tsx
+
+- 회원가입 API 호출 함수에 파라미터 유효 코드 추가
+- Input 컴포넌트를 호출하는 jsx 코드에 props 추가
+
+```tsx
+// ...
+/**
+   * 회원가입 API를 호출한다.
+   * @param event
+   */
+const onSubmitSignup = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+
+  // 파라미터 유효성 검사
+  setValidation(true);
+
+  if (!email || !lastname || !firstname || !password) {
+    return undefined;
+  }
+  
+  
+  
+// ...
+      <div className="input-wrapper">
+        <Input
+          type="email"
+          name="eamil" // name: email은 브라우저가 저장할 수 있도록 해줌
+          placeholder="Enter E-mail Address"
+          icon={<MailIcon />}
+          value={email}
+          onChange={onChangeEmail}
+          validateMode={validateMode}
+          useValidation
+          isValid={!!email}
+          errorMessage="이메일이 필요해요."
+        />
+ // ...
+```
+
+---
+
+## 10.7 useValidateMode 훅스 만들기
+
+- 훅스 생성 이유
+  - validation check를 하는 컴포넌트마다 `validateMode`라는 state를 만들고 전달하기 번거롭다
+
+### store에 validateMode state 생성
+
+types/reduxState.d.ts
+
+```typescript
+// * 공통 redux state
+export type CommonState = {
+  validateMode: boolean; // 화면에 유효성 검사 결과를 띄울지 여부
+};
+
+```
+
+store/common.ts
+
+```typescript
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { CommonState } from '../types/reduxState';
+
+// * 초기 상태
+const initialState: CommonState = {
+  validateMode: false,
+};
+
+// createSlice 함수 호출 - Action 및 reducer 선언 후 생성해줌 Slice 반환
+// Slice 인터페이스는 actions, reducer, getInitailState 등을 속성으로 갖는다.
+const common = createSlice({
+  name: 'common',
+  initialState,
+  reducers: {
+    // * validateMode 변경하기
+    setValidateMode(state, action: PayloadAction<boolean>) {
+      state.validateMode = action.payload;
+    },
+  },
+});
+
+export const commonActions = { ...common.actions };
+
+export default common;
+
+```
+
+store/index.ts
+
+```typescript
+const rootReducer = combineReducers({
+  common: common.reducer,
+  user: user.reducer,
+});
+```
+
+### useSelector 사용해 store 의 validateMode 가져오기
+
+components/common/Input.tsx
+
+- IProps 에서 validateMode 삭제
+- useState로 관리하던 validateMode 삭제
+
+```tsx
+// React.InputHTMLAttributes<HTMLInputElement> :: <input> 태그가 가지는 속성들에 대한 타입
+interface IProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  icon?: JSX.Element;
+  isValid?: boolean;
+  useValidation?: boolean;
+  errorMessage?: string;
+}
+
+const Input: React.FC<IProps> = ({
+  icon,
+  isValid = false,
+  useValidation = true,
+  errorMessage,
+  ...props
+}) => {
+  // 유효성 검사 활성화 여부(store에서 꺼내오기)
+  const validateMode = useSelector(state => state.common.validateMode);
+
+```
+
+### dispatch - store state 변경
+
+components/auth/SignUpModal.tsx
+
+```tsx
+  // Redux
+  const dispatch = useDispatch();
+
+  /**
+   * 회원가입 API를 호출한다.
+   * @param event
+   */
+  const onSubmitSignup = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // 파라미터 유효성 검사 (store.common.validateMode 변경)
+    dispatch(commonActions.setValidateMode(true));
+    
+  //...
+```
+
+### 커스텀 훅 생성
+
+hooks/useValidateMode.ts
+
+```typescript
+import { useDispatch } from 'react-redux';
+import { useSelector } from '../store';
+import { commonActions } from '../store/common';
+
+/**
+ * store.state.common 의 validateMode 의 값과 해당 setter 반환
+ *
+ * @return  {[array]}  [return description]
+ */
+export default () => {
+  const dispatch = useDispatch();
+  const validateMode = useSelector(state => state.common.validateMode);
+
+  const setValidateMode = (value: boolean) =>
+    dispatch(commonActions.setValidateMode(value));
+
+  return { validateMode, setValidateMode };
+};
+```
+
+---
+
+## 10.8 회원가입 비밀번호 밸리데이션
+
+components/auth/SignUpModal.tsx
+
+```tsx
+  // 비밀번호 input El에 focus 되었는지 여부
+  const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const onFocusPassword = () => {
+    setPasswordFocused(true);
+  };
+
+// ...
+
+<Input
+  placeholder="Enter Password"
+  type={hidePassword ? 'password' : 'text'} // input 값이 *로 대체되어 보임
+  icon={
+    hidePassword ? (
+      <OpenedEyeIcon onClick={toggleHidePassword} />
+    ) : (
+      <ClosedEyeIcon onClick={toggleHidePassword} />
+    )
+  }
+  value={password}
+  onChange={onChangePassword}
+  onFocus={onFocusPassword}
+  useValidation
+  isValid={!!password}
+  errorMessage="비밀전호를 입력하세요."
+  />
+```
+
+### validation
+
+1. 비밀번호에 lastname이나 email 앞부분이 포함되면 안된다.
+
+   ```tsx
+     // password가 name이나 email을 포함하는지 여부
+     const isPasswordHasNameOrEmail = useMemo(
+       () =>
+         !password ||
+         !lastname ||
+         !email ||
+         password.includes(lastname) ||
+         password.includes(email.split('@')[0]),
+       [password, lastname, email],
+     );
+   ```
+
+   
+
+2. 비밀번호 자릿수 최소 자릿수 이상이어야 한다.
+
+   ```tsx
+     // [password validation #2] password가 최소 자릿수 이상인지
+     const isPasswordOverMinLength = useMemo(
+       () => !!password && password.length >= PASSWORD_MIN_LENGTH,
+       [password],
+     );
+   ```
+
+   
+
+3. 숫자나 기호를 포함해야 한다.
+
+   ```tsx
+     // [password validation #3] password가 숫자, 특수문자를 포함했는지
+     const isPasswordHasNumberOrSymbol = useMemo(
+       () =>
+         !(
+           (
+             /[{}[\]/?.,;:|)*~`!^\-_+<>@#$%&\\=('"]/g.test(password) || // 특수문자 포함 여부
+             /[0-9]/g.test(password)
+           ) // 숫자 포함 여부
+         ),
+       [password],
+     );
+   ```
+
+위 세가지 validation 조건들의 list => rendering 돌릴 기준
+
+```tsx
+  const passwordValidArr = [
+    {
+      isValid: !isPasswordHasNameOrEmail,
+      text: '비밀번호에 본인 이름이나 이메일 주소를 포함할 수 없어요.',
+    },
+    {
+      isValid: isPasswordOverMinLength,
+      text: '비밀번호는 최소 8자 이상 입력해주셔야 해요.',
+    },
+    {
+      isValid: isPasswordHasNumberOrSymbol,
+      text: '비밀번호는 숫자나 기호가 포함되어야 해요.',
+    },
+  ];
+```
+
+
+
+components/auth/PasswordWarning.tsx
+
+```tsx
+import styled from 'styled-components';
+import palette from '../../styles/palette';
+import RedXIcon from '../../public/static/svg/auth/red_x_icon.svg';
+import GreenCheckIcon from '../../public/static/svg/auth/green_check_icon.svg';
+
+const Container = styled.p<{ isValid: boolean }>`
+  color: ${({ isValid }) =>
+    isValid ? palette.davidson_orange : palette.green};
+  display: flex;
+  align-items: center;
+  svg {
+    margin-right: 8px;
+  }
+`;
+
+interface IProps {
+  isValid: boolean;
+  text: string;
+}
+
+const PasswordWarning: React.FC<IProps> = ({ isValid, text }) => {
+  return (
+    <Container isValid={isValid}>
+      {isValid ? <RedXIcon /> : <GreenCheckIcon />}
+      {text}
+    </Container>
+  );
+};
+
+export default PasswordWarning;
+
+```
+
+components/auth/SignUpModal.tsx
+
+```tsx
+      <div className="input-wrapper sign-up-password-input-wrapper">
+        {/* ======================== PASSWORD ========================= */}
+        <Input
+          placeholder="Enter Password"
+          type={hidePassword ? 'password' : 'text'} // input 값이 *로 대체되어 보임
+          icon={
+            hidePassword ? (
+              <OpenedEyeIcon onClick={toggleHidePassword} />
+            ) : (
+              <ClosedEyeIcon onClick={toggleHidePassword} />
+            )
+          }
+          value={password}
+          onChange={onChangePassword}
+          onFocus={onFocusPassword}
+          useValidation
+          isValid={
+            !isPasswordHasNameOrEmail &&
+            isPasswordOverMinLength &&
+            isPasswordHasNumberOrSymbol
+          }
+          errorMessage="비밀전호를 입력하세요."
+        />
+      </div>
+      {passwordFocused && (
+        <div className="password-warning-wrapper">
+          {passwordValidArr &&
+            passwordValidArr.map((passwordValid, index) => (
+              <PasswordWarning
+                isValid={passwordValid.isValid}
+                text={passwordValid.text}
+                key={index}
+              />
+            ))}
+        </div>
+      )}
+```
+

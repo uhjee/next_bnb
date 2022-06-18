@@ -4,3 +4,8 @@ import { UserType } from './user';
 export type UserState = UserType & {
   isLogged: boolean;
 };
+
+// * 공통 redux state
+export type CommonState = {
+  validateMode: boolean; // 화면에 유효성 검사 결과를 띄울지 여부
+};

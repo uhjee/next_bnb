@@ -5,8 +5,10 @@ import {
   TypedUseSelectorHook,
   useSelector as useReduxSelector,
 } from 'react-redux';
+import common from './common';
 
 const rootReducer = combineReducers({
+  common: common.reducer,
   user: user.reducer,
 });
 
@@ -30,7 +32,7 @@ const reducer = (state: any, action: any) => {
 };
 
 // 타입 지원하는 useSelector로 커스텀 하기
-export const userSelector: TypedUseSelectorHook<RootState> = useReduxSelector;
+export const useSelector: TypedUseSelectorHook<RootState> = useReduxSelector;
 
 const initStore: MakeStore<any> = () => {
   // configureStore 로 store 설정

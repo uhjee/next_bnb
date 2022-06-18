@@ -9,11 +9,14 @@ import Input from '../common/Input';
 import Selector from '../common/Selector';
 
 import { monthList, dayList, yearList } from '../../lib/staticData';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Button from '../common/Button';
 import { signupAPI } from '../../lib/api/auth';
 import { useDispatch } from 'react-redux';
 import { userActions } from '../../store/user';
+import { commonActions } from '../../store/common';
+import useValidateMode from '../../hooks/useValidateMode';
+import PasswordWarning from './PasswordWarning';
 
 const Container = styled.form`
   width: 568px;
@@ -35,6 +38,14 @@ const Container = styled.form`
   .sign-up-password-input-wrapper {
     svg {
       cursor: pointer;
+    }
+  }
+  .password-warning-wrapper {
+    & > * {
+      margin-bottom: 4px;
+      &:last-child {
+        margin-bottom: 0;
+      }
     }
   }
   .sign-up-birthday-label {
@@ -68,6 +79,9 @@ const Container = styled.form`
     }
   }
 `;
+
+// 비밀번호 최소 자릿수
+const PASSWORD_MIN_LENGTH = 8;
 
 const SignUpModal: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -119,6 +133,56 @@ const SignUpModal: React.FC = () => {
   // Redux
   const dispatch = useDispatch();
 
+  // customHooks - state.comomn.validateMode 변경
+  const { setValidateMode } = useValidateMode();
+
+  // 비밀번호 input El에 focus 되었는지 여부
+  const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const onFocusPassword = () => {
+    setPasswordFocused(true);
+  };
+
+  // [password validation #1] password가 name이나 email을 포함하는지 여부
+  const isPasswordHasNameOrEmail = useMemo(
+    () =>
+      !password ||
+      !lastname ||
+      !email ||
+      password.includes(lastname) ||
+      password.includes(email.split('@')[0]),
+    [password, lastname, email],
+  );
+
+  // [password validation #2] password가 최소 자릿수 이상인지
+  const isPasswordOverMinLength = useMemo(
+    () => !!password && password.length >= PASSWORD_MIN_LENGTH,
+    [password],
+  );
+
+  // [password validation #3] password가 숫자, 특수문자를 포함했는지
+  const isPasswordHasNumberOrSymbol = useMemo(
+    () =>
+      /[{}[\]/?.,;:|)*~`!^\-_+<>@#$%&\\=('"]/g.test(password) && // 특수문자 포함 여부
+      /[0-9]/g.test(password), // 숫자 포함 여부
+    [password],
+  );
+
+  const passwordValidArr = [
+    {
+      isValid: !isPasswordHasNameOrEmail,
+      text: '비밀번호에 본인 이름이나 이메일 주소를 포함할 수 없어요.',
+    },
+    {
+      isValid: isPasswordOverMinLength,
+      text: '비밀번호는 최소 8자 이상 입력해주셔야 해요.',
+    },
+    {
+      isValid: isPasswordHasNumberOrSymbol,
+      text: '비밀번호는 숫자나 기호가 포함되어야 해요.',
+    },
+  ];
+
   /**
    * 회원가입 API를 호출한다.
    * @param event
@@ -126,8 +190,8 @@ const SignUpModal: React.FC = () => {
   const onSubmitSignup = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // 파라미터 유효성 검사
-    setValidation(true);
+    // 파라미터 유효성 검사 (store.common.validateMode 변경)
+    setValidateMode(true);
 
     if (!email || !lastname || !firstname || !password) {
       return undefined;
@@ -156,6 +220,7 @@ const SignUpModal: React.FC = () => {
     <Container onSubmit={onSubmitSignup}>
       <CloseXIcon className="modal-close-x-icon" />
       <div className="input-wrapper">
+        {/* ======================== E-MAIL ========================= */}
         <Input
           type="email"
           name="eamil" // name: email은 브라우저가 저장할 수 있도록 해줌
@@ -163,37 +228,37 @@ const SignUpModal: React.FC = () => {
           icon={<MailIcon />}
           value={email}
           onChange={onChangeEmail}
-          validateMode={validateMode}
           useValidation
           isValid={!!email}
           errorMessage="이메일이 필요해요."
         />
       </div>
       <div className="input-wrapper">
+        {/* ======================== LAST NAME ========================= */}
         <Input
           placeholder="Last Name (e.g. 살바도르)"
           icon={<PersonIcon />}
           value={lastname}
           onChange={onChangeLastname}
-          validateMode={validateMode}
           useValidation
           isValid={!!lastname}
           errorMessage="이름을 필요해요."
         />
       </div>
       <div className="input-wrapper">
+        {/* ======================== FIRST NAME~ ========================= */}
         <Input
           placeholder="First Name (e.g. 달리)"
           icon={<PersonIcon />}
           value={firstname}
           onChange={onChangeFirstname}
-          validateMode={validateMode}
           useValidation
           isValid={!!firstname}
           errorMessage="성이 필요해요."
         />
       </div>
       <div className="input-wrapper sign-up-password-input-wrapper">
+        {/* ======================== PASSWORD ========================= */}
         <Input
           placeholder="Enter Password"
           type={hidePassword ? 'password' : 'text'} // input 값이 *로 대체되어 보임
@@ -206,17 +271,34 @@ const SignUpModal: React.FC = () => {
           }
           value={password}
           onChange={onChangePassword}
-          validateMode={validateMode}
+          onFocus={onFocusPassword}
           useValidation
-          isValid={!!password}
+          isValid={
+            !isPasswordHasNameOrEmail &&
+            isPasswordOverMinLength &&
+            isPasswordHasNumberOrSymbol
+          }
           errorMessage="비밀전호를 입력하세요."
         />
       </div>
+      {passwordFocused && (
+        <div className="password-warning-wrapper">
+          {passwordValidArr &&
+            passwordValidArr.map((passwordValid, index) => (
+              <PasswordWarning
+                isValid={passwordValid.isValid}
+                text={passwordValid.text}
+                key={index}
+              />
+            ))}
+        </div>
+      )}
       <p className="sign-up-birthday-label">Birthdate</p>
       <p className="sign-up-modal-birthday-info">
         만 18세 이상의 성인만 회원으로 가입할 수 있어요. 생일은 다른 사용자에게
         공개되지 않아요.
       </p>
+      {/* ======================== BIRTHDAY ========================= */}
       <div className="sign-up-modal-birthday-selectors">
         <div className="sign-up-modal-birthday-month-selector">
           <Selector

@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
+import { useSelector } from '../../store';
 import palette from '../../styles/palette';
-
 
 // styled-component 함수의 타입
 type InputContainerProps = {
@@ -39,7 +39,7 @@ const Container = styled.div<InputContainerProps>`
   .input-error-message {
     margin-top: 8px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px;
     color: ${palette.tawny};
   }
   // 유효성 검사 -> 유효하지 않은 경우
@@ -71,19 +71,20 @@ const Container = styled.div<InputContainerProps>`
 interface IProps extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: JSX.Element;
   isValid?: boolean;
-  validateMode?: boolean;
   useValidation?: boolean;
   errorMessage?: string;
 }
 
 const Input: React.FC<IProps> = ({
   icon,
-  validateMode = false,
   isValid = false,
   useValidation = true,
   errorMessage,
   ...props
 }) => {
+  // 유효성 검사 활성화 여부(store에서 꺼내오기)
+  const validateMode = useSelector(state => state.common.validateMode);
+
   return (
     // styled Component에 props로 변수 전달
     <Container
