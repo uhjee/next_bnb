@@ -2310,3 +2310,120 @@ components/auth/SignUpModal.tsx
       )}
 ```
 
+---
+
+## 10.9 회원가입 Selector 밸리데이션 (생년월일)
+
+/components/common/Input.tsx
+
+- styled-component 제네릭 추가
+
+```tsx
+// ...
+const Container = styled.div<{ isValid: boolean; validateMode: boolean }>`
+  width: 100%;
+  height: 46px;
+
+  select {
+    width: 100%;
+    height: 100%;
+    border: 1px solid ${palette.gray_eb};
+    padding: 0 11px;
+    border-radius: 4px;
+    outline: none;
+    /* select 요소의 화살표 제거 */
+    -webkit-appearance: none;
+    background-image: url('/static/svg/common/selector/selector_down_arrow.svg');
+    background-position: right 11px center;
+    background-repeat: no-repeat;
+    font-size: 16px;
+
+    background-color: #fff;
+    &:focus {
+      border-color: ${palette.Amaranth};
+    }
+  }
+  ${({ isValid, validateMode }) =>
+    validateMode &&
+    css`
+      select {
+        border-color: ${isValid ? palette.dark_cyan : palette.tawny} !important;
+        background-color: ${isValid ? '#fff' : palette.snow};
+      }
+    `}
+`;
+// ...
+
+  return (
+    <Container isValid={isValid} validateMode={validateMode}>
+      <select {...props}>
+```
+
+- useSelector 사용해 common state 확인
+
+```tsx
+  // 유효성 검사 모드인지 확인 (state.common)
+  const validateMode = useSelector(state => state.common.validateMode);
+
+```
+
+
+
+components/auth/SignUpModal.tsx
+
+```tsx
+
+  /**
+   * 회원가입 폼 입력 값 확인하기
+   */
+  const validateSignUpForm = () => {
+    // input 값 확인
+    if (!email || !lastname || !firstname || !password) return false;
+
+    // 비밀번호 확인
+    if (
+      isPasswordHasNameOrEmail ||
+      !isPasswordOverMinLength ||
+      !isPasswordHasNumberOrSymbol
+    )
+      return false;
+
+    // 생년월일 셀렉터 값 확인
+    if (!birthYear || !birthMonth || !birthDay) return false;
+    return true;
+  };
+
+// ...
+
+
+  /**
+   * 회원가입 API를 호출한다.
+   * @param event
+   */
+  const onSubmitSignup = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // 파라미터 유효성 검사 (store.common.validateMode 변경)
+    setValidateMode(true);
+    // console.log(validateSignUpForm());
+    if (validateSignUpForm())
+      try {
+        const signUpBody = {
+          email,
+          lastname,
+          firstname,
+          password,
+          birthday: new Date(
+            `${birthYear}-${birthMonth!.replace('월', '')}-${birthDay}`,
+          ).toISOString(),
+        };
+
+        const { data } = await signupAPI(signUpBody);
+        // redux에 회원가입F된 유저정보 저장
+        dispatch(userActions.setLoggedUser(data));
+      } catch (e) {
+        console.log(e);
+      }
+  };
+```
+

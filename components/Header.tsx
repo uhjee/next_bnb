@@ -66,7 +66,7 @@ const Container = styled.div`
 
 const Header: React.FC = () => {
   // custom hook : useModal 사용
-  const { openModal, ModalPortal } = useModal();
+  const { openModal, ModalPortal, closeModal } = useModal();
 
   return (
     <Container>
@@ -84,7 +84,7 @@ const Header: React.FC = () => {
         <button className="header-login-button">Sign In</button>
       </div>
       <ModalPortal>
-        <SignUpModal />
+        <SignUpModal closeModal={closeModal} />
       </ModalPortal>
     </Container>
   );
