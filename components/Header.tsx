@@ -1,12 +1,14 @@
 import Link from 'next/link';
-import { useState } from 'react';
 import styled from 'styled-components';
 import useModal from '../hooks/useModal';
 import AirbnbLogoIcon from '../public/static/svg/logo/logo.svg';
 import AirbnbLogoTextIcon from '../public/static/svg/logo/logo_text.svg';
+import HamburgerIcon from '../public/static/svg/header/hamburger.svg';
+import { useSelector } from '../store';
 import palette from '../styles/palette';
-import SignUpModal from './auth/SignUpModal';
-import ModalPortal from './ModalPortal';
+import { authActions } from '../store/auth';
+import { useDispatch } from 'react-redux';
+import AuthModal from './auth/AuthModal';
 
 const Container = styled.div`
   /* 고정 */
@@ -62,11 +64,40 @@ const Container = styled.div`
       }
     }
   }
+
+  .header-user-profile {
+    display: flex;
+    align-items: center;
+    height: 42px;
+    padding: 0 6px 0 16px;
+    border: 0;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.18);
+    border-radius: 21px;
+    background-color: #fff;
+    cursor: pointer;
+    outline: none;
+    &:hober {
+      box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .header-user-profile-image {
+      margin-left: 8px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+    }
+  }
 `;
 
 const Header: React.FC = () => {
   // custom hook : useModal 사용
   const { openModal, ModalPortal, closeModal } = useModal();
+
+  // login된 user 정보 가져오기
+  const user = useSelector(state => state.user);
+
+  // store의 state를 변경 하기 위해
+  const dispatch = useDispatch();
 
   return (
     <Container>
@@ -77,14 +108,41 @@ const Header: React.FC = () => {
           <AirbnbLogoTextIcon />
         </a>
       </Link>
-      <div className="header-auth-buttons">
-        <button className="header-sign-up-button" onClick={openModal}>
-          Sign Up
+      {!user.isLogged && (
+        <div className="header-auth-buttons">
+          <button
+            className="header-sign-up-button"
+            onClick={() => {
+              dispatch(authActions.setAuthMode('signup'));
+              openModal();
+            }}
+          >
+            Sign Up
+          </button>
+          <button
+            className="header-login-button"
+            onClick={() => {
+              dispatch(authActions.setAuthMode('login'));
+              openModal();
+            }}
+          >
+            Sign In
+          </button>
+        </div>
+      )}
+      {user.isLogged && (
+        <button className="header-user-profile">
+          <HamburgerIcon />
+          <img
+            src={user.profileImage}
+            alt=""
+            className="header-user-profile-image"
+          />
         </button>
-        <button className="header-login-button">Sign In</button>
-      </div>
+      )}
+
       <ModalPortal>
-        <SignUpModal closeModal={closeModal} />
+        <AuthModal closeModal={closeModal} />
       </ModalPortal>
     </Container>
   );

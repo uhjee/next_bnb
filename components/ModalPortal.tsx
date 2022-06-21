@@ -20,11 +20,11 @@ const Container = styled.div`
     z-index: 10;
   }
   /* .modal-contents {
-      width: 400px;
-      height: 400px;
-      background-color: #fff;
-      z-index: 11;
-    } */
+    width: 400px;
+    height: 400px;
+    background-color: #fff;
+    z-index: 11;
+  } */
 `;
 
 interface IProps {
@@ -52,9 +52,7 @@ const ModalPortal: React.FC<IProps> = ({ children, closePortal }) => {
     return createPortal(
       // 인자 1: 포탈을 통해 전달할 react 컴포넌트
       <Container>
-        <div className="modal-background"
-          onClick={closePortal}
-        />
+        <div className="modal-background" onClick={closePortal} />
         {children}
       </Container>,
       // 인자 2: 전달할 react 컴포넌트가 담길 DOM element

@@ -17,6 +17,7 @@ import { userActions } from '../../store/user';
 import { commonActions } from '../../store/common';
 import useValidateMode from '../../hooks/useValidateMode';
 import PasswordWarning from './PasswordWarning';
+import { useSelector, RootState } from '../../store';
 
 const Container = styled.form`
   width: 568px;

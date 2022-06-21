@@ -1,6 +1,7 @@
 import { HYDRATE, createWrapper, MakeStore } from 'next-redux-wrapper';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import user from './user';
+import auth from './auth';
 import {
   TypedUseSelectorHook,
   useSelector as useReduxSelector,
@@ -10,6 +11,7 @@ import common from './common';
 const rootReducer = combineReducers({
   common: common.reducer,
   user: user.reducer,
+  auth: auth.reducer,
 });
 
 // * Store의 타입
