@@ -18,6 +18,7 @@ import { commonActions } from '../../store/common';
 import useValidateMode from '../../hooks/useValidateMode';
 import PasswordWarning from './PasswordWarning';
 import { useSelector, RootState } from '../../store';
+import { authActions } from '../../store/auth';
 
 const Container = styled.form`
   width: 568px;
@@ -78,6 +79,12 @@ const Container = styled.form`
     .sign-up-modal-birthday-year-selector {
       width: 33.3333%;
     }
+  }
+
+  .sign-up-modal-submit-button-wrapper {
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid ${palette.gray_eb};
   }
 
   .sign-up-modal-set-login {
@@ -254,6 +261,12 @@ const SignUpModal: React.FC<IProps> = ({ closeModal }) => {
       }
   };
 
+  /**
+   * 로그인 모달로 변경하기
+   */
+  const changeToLoginModal = () => {
+    dispatch(authActions.setAuthMode('login'));
+  };
   return (
     <Container onSubmit={onSubmitSignup}>
       <CloseXIcon className="modal-close-x-icon" onClick={closeModal} />
@@ -377,7 +390,7 @@ const SignUpModal: React.FC<IProps> = ({ closeModal }) => {
         <span
           className="sign-up-modal-set-login"
           role="presentaion"
-          onClick={() => {}}
+          onClick={changeToLoginModal}
         >
           Sign In
         </span>
