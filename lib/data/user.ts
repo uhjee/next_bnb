@@ -11,7 +11,7 @@ import { StoredUserType } from '../../types/user';
  * @return  {[StoredUserType[]]}  [return description]
  */
 const getList = () => {
-  const filePath = 'data/user.json';
+  const filePath = 'data/users.json';
   const usersBuffer = readFileSync(filePath);
   const userString = usersBuffer.toString();
 

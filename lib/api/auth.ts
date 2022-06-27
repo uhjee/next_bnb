@@ -14,6 +14,10 @@ interface SignUpAPIBody {
   birthday: string;
 }
 
-// 회원가입 API
+// 회원가입 API 요청
 export const signupAPI = (body: SignUpAPIBody) =>
   axios.post<UserType>('/api/auth/signup', body);
+
+// 로그인 API 요청
+export const loginAPI = (body: { email: string; password: string }) =>
+  axios.post<UserType>('/api/auth/login', body);

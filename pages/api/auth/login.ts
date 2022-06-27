@@ -1,5 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
 import Data from '../../../lib/data';
+import { StoredUserType } from '../../../types/user';
 
 /**
  * 로그인을 처리한다.
@@ -30,6 +34,29 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         res.statusCode = 405;
         return res.send('해당 이메일을 가진 유저가 없습니다.');
       }
+
+      // bcrypt 사용해 비밀번호가 일치하는지 확인 (복호화하지 않은 상태에서 확인)
+      const isPasswordMatched = bcrypt.compareSync(password, user.password);
+      if (!isPasswordMatched) {
+        res.statusCode = 403;
+        return res.send('비밀번호가 일치하지 않습니다.');
+      }
+
+      // * 비밀번호가 일치하는 경우, password 제거 후, token 전달
+      const token = jwt.sign(String(user.id), process.env.JWT_SECRET!);
+      res.setHeader(
+        'Set-Cookie',
+        `access_token=${token}; path=/; expires=${new Date(
+          Date.now() + 60 * 60 * 24 * 1000 * 3, // 3일
+        )}; httponly`,
+      );
+
+      const newUserWithoutPassword: Partial<Pick<StoredUserType, 'password'>> =
+        user;
+
+      delete newUserWithoutPassword.password;
+      res.statusCode = 200;
+      return res.send(user);
     } catch (e) {
       console.log(e);
       res.statusCode = 500;

@@ -6,9 +6,12 @@ import ClosedEyeIcon from '../../public/static/svg/auth/closed-eye.svg';
 import OpenedEyeIcon from '../../public/static/svg/auth/opened-eye.svg';
 import Input from '../common/Input';
 import Button from '../common/Button';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { authActions } from '../../store/auth';
+import { loginAPI } from '../../lib/api/auth';
+import useValidateMode from '../../hooks/useValidateMode';
+import { userActions } from '../../store/user';
 
 const Container = styled.form`
   width: 568px;
@@ -85,8 +88,45 @@ const LoginModal: React.FC<IProps> = ({ closeModal }) => {
     dispatch(authActions.setAuthMode('signup'));
   };
 
+  // validation 모드 세팅
+  const { setValidateMode } = useValidateMode();
+
+  /**
+   * login을 진행한다.
+   * @param event
+   */
+  const onsubmitLogin = async (event: React.FocusEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setValidateMode(true);
+
+    if (!email || !password) {
+      alert('이메일과 비밀번호를 입력해주세요.');
+    } else {
+      const loginBody = { email, password };
+
+      try {
+        const { data } = await loginAPI(loginBody);
+
+        // redux에 로그인 유저 정보 세팅
+        dispatch(userActions.setLoggedUser(data));
+        closeModal();
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  };
+
+  /**
+   * 컴포넌트 초기화
+   */
+  useEffect(() => {
+    return () => {
+      setValidateMode(false);
+    };
+  }, []);
+
   return (
-    <Container>
+    <Container onSubmit={onsubmitLogin}>
       <CloseXIcon className="modal-close-x-icon" onClick={closeModal} />
       <div className="login-input-wrapper">
         <Input
@@ -96,6 +136,8 @@ const LoginModal: React.FC<IProps> = ({ closeModal }) => {
           icon={<MailIcon />}
           value={email}
           onChange={onChangeEmail}
+          isValid={email !== ''}
+          errorMessage="이메일이 필요해요."
         />
       </div>
       <div className="login-input-wrapper login-password-input-wrapper">
@@ -111,6 +153,8 @@ const LoginModal: React.FC<IProps> = ({ closeModal }) => {
           }
           value={password}
           onChange={onChangePassword}
+          isValid={password !== ''}
+          errorMessage="비밀번호를 입력해주세요."
         />
       </div>
       <div className="login-modal-submit-button-wrapper">
