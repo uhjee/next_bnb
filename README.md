@@ -2905,3 +2905,60 @@ components/auth/LoginModal.tsx
 // ...
 ```
 
+---
+
+## 10.14 로그인 유지하기
+
+- 모든 페이지에서 유저가 페이지에 접속했을 때, access_token이 있다면, user 정보를 불러와 redux store에 저장 -> loing 상태
+- 모든 페이지 -> app.tsx에서 getInitialProps 사용
+
+pages/_app.tsx
+
+```tsx
+/**
+ * 컴포넌트의 getInitailProps -> 서버에서 페이지 렌더링 전에 데이터를 가져옴
+ * @param context
+ * @returns
+ */
+/**
+ * 컴포넌트의 getInitailProps -> 서버에서 페이지 렌더링 전에 데이터를 가져옴
+ * @param context
+ * @returns
+ */
+app.getInitialProps = async (context: AppContext) => {
+  const appInitailProps = await App.getInitialProps(context);
+  const cookieObject = cookieStringToObject(context.ctx.req?.headers.cookie);
+  axios.defaults.headers.common.Cookie = cookieObject.access_token;
+  return { ...appInitailProps };
+};
+
+// ...
+```
+
+
+
+lib/util.ts
+
+```typescript
+/**
+ * 문자열로 된 cookie를 parsing 한다.
+ *
+ * @param   {string}  cookieString  [cookieString description]
+ *
+ * @return  {string}                [return description]
+ */
+export const cookieStringToObject = (cookieString: string | undefined) => {
+  const cookies: { [key: string]: string } = {};
+  if (cookieString) {
+    //* 'token = value
+    const itemString = cookieString?.split(/\s*;\s*/); // \s은 스페이스
+    itemString.forEach(pairs => {
+      //* [token, value]
+      const pair = pairs.split(/\s*=\s*/);
+      cookies[pair[0]] = pair.splice(1).join('=');
+    });
+  }
+  return cookies;
+};
+```
+

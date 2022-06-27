@@ -21,3 +21,6 @@ export const signupAPI = (body: SignUpAPIBody) =>
 // 로그인 API 요청
 export const loginAPI = (body: { email: string; password: string }) =>
   axios.post<UserType>('/api/auth/login', body);
+
+// header.cookie에 token이 있는지 확인 API 요청
+export const meAPI = () => axios.get<UserType>('/api/auth/me');

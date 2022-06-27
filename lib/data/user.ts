@@ -51,9 +51,9 @@ const write = async (users: StoredUserType[]) => {
  * @param   {string}  email  [email description]
  * @return  {[type]}         [return description]
  */
-const find = ({ email }: { email: string }) => {
+const find = ({ email, id }: { email?: string; id?: number }) => {
   const users = getList();
-  return users.find(user => user.email === email);
+  return users.find(user => user.email === email || user.id === id);
 };
 
 export default {
