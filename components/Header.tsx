@@ -9,6 +9,8 @@ import palette from '../styles/palette';
 import { authActions } from '../store/auth';
 import { useDispatch } from 'react-redux';
 import AuthModal from './auth/AuthModal';
+import { useState } from 'react';
+import OutsideClickHandler from 'react-outside-click-handler';
 
 const Container = styled.div`
   /* 고정 */
@@ -87,6 +89,41 @@ const Container = styled.div`
       border-radius: 50%;
     }
   }
+
+  /* react-outside-click-handler div */
+  .header-logo-wrapper + div {
+    position: relative;
+  }
+
+  .header-usermenu {
+    position: absolute;
+    right: 0;
+    top: 52px;
+    width: 240px;
+    padding: 8px 0;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    background-color: #fff;
+
+    li {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 42px;
+      padding: 0 16px;
+      cursor: pointer;
+      &:hover {
+        background-color: ${palette.gray_f7};
+      }
+    }
+
+    .header-usermenu-divider {
+      width: 100%;
+      height: 1px;
+      margin: 8px 0;
+      background-color: ${palette.gray_dd};
+    }
+  }
 `;
 
 const Header: React.FC = () => {
@@ -98,6 +135,9 @@ const Header: React.FC = () => {
 
   // store의 state를 변경 하기 위해
   const dispatch = useDispatch();
+
+  // 유저 팝업이 열리고 닫히는 여부 관리 상태
+  const [isUsermenuOpened, setIsUsermenuOpened] = useState(false);
 
   return (
     <Container>
@@ -131,14 +171,47 @@ const Header: React.FC = () => {
         </div>
       )}
       {user.isLogged && (
-        <button className="header-user-profile">
-          <HamburgerIcon />
-          <img
-            src={user.profileImage}
-            alt=""
-            className="header-user-profile-image"
-          />
-        </button>
+        <OutsideClickHandler
+          onOutsideClick={() => {
+            // 컴포넌트 외부 클릭시 유저 메뉴 닫히도록
+            if (isUsermenuOpened) {
+              setIsUsermenuOpened(false);
+            }
+          }}
+        >
+          <button
+            className="header-user-profile"
+            type="button"
+            onClick={() => setIsUsermenuOpened(!isUsermenuOpened)}
+          >
+            <HamburgerIcon />
+            <img
+              src={user.profileImage}
+              alt=""
+              className="header-user-profile-image"
+            />
+          </button>
+          {/* 유저 메뉴 팝업 */}
+          {isUsermenuOpened && (
+            <ul className="header-usermenu">
+              <li>숙소 관리</li>
+              <Link href="/room/register/building">
+                <a
+                  role="presentation"
+                  onClick={() => {
+                    setIsUsermenuOpened(false);
+                  }}
+                >
+                  <li>숙소 등록하기</li>
+                </a>
+              </Link>
+              <div className="header-usermenu-divider" />
+              <li role="presentation" onClick={() => {}}>
+                로그아웃
+              </li>
+            </ul>
+          )}
+        </OutsideClickHandler>
       )}
 
       <ModalPortal>

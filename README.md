@@ -2962,3 +2962,54 @@ export const cookieStringToObject = (cookieString: string | undefined) => {
 };
 ```
 
+---
+
+## 10.15 유저 메뉴 만들기
+
+### react-outside-click-handler 라이브러리
+
+- OutsideClickHandler 컴포넌트를 사용해 **컴포넌트의 외부**를 클릭 시 원하는 이벤트를 넣을 수 있는 기능 제공
+
+```sh
+$ yarn add react-outside-click-handler
+$ yarn add @types/react-outside-click-handler -D
+```
+
+
+
+components/Header.tsx
+
+```tsx
+  // 유저 팝업이 열리고 닫히는 여부 관리 상태
+  const [isUsermenuOpened, setIsUsermenuOpened] = useState(false);
+
+// ...
+
+      {user.isLogged && (
+        <OutsideClickHandler
+          onOutsideClick={() => {
+            if (isUsermenuOpened) {
+              setIsUsermenuOpened(false);
+            }
+          }}
+        >
+          <button
+            className="header-user-profile"
+            type="button"
+            onClick={() => setIsUsermenuOpened(!isUsermenuOpened)}
+          >
+            <HamburgerIcon />
+            <img
+              src={user.profileImage}
+              alt=""
+              className="header-user-profile-image"
+            />
+          </button>
+          {/* 유저 메뉴 팝업 */}
+          {isUsermenuOpened && <div>유저 메뉴</div>}
+        </OutsideClickHandler>
+  // ...
+```
+
+
+
