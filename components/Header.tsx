@@ -11,6 +11,8 @@ import { useDispatch } from 'react-redux';
 import AuthModal from './auth/AuthModal';
 import { useState } from 'react';
 import OutsideClickHandler from 'react-outside-click-handler';
+import { logoutAPI } from '../lib/api/auth';
+import { userActions } from '../store/user';
 
 const Container = styled.div`
   /* 고정 */
@@ -139,6 +141,20 @@ const Header: React.FC = () => {
   // 유저 팝업이 열리고 닫히는 여부 관리 상태
   const [isUsermenuOpened, setIsUsermenuOpened] = useState(false);
 
+  /**
+   * 로그아웃 처리한다.
+   */
+  const logout = async () => {
+    try {
+      // 01. api를 통해 cookies의 access_token 초기화
+      await logoutAPI();
+      // 02. redux의 user 초기화
+      dispatch(userActions.initUser());
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
     <Container>
       {/* Link 컴포넌트 사용해 기본 페이지로 이동 */}
@@ -206,7 +222,7 @@ const Header: React.FC = () => {
                 </a>
               </Link>
               <div className="header-usermenu-divider" />
-              <li role="presentation" onClick={() => {}}>
+              <li role="presentation" onClick={logout}>
                 로그아웃
               </li>
             </ul>

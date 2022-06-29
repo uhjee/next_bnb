@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import Data from '../../../lib/data';
 import { StoredUserType } from '../../../types/user';
 /**
- * [async description]
+ * JWT가 일치하는 경우, 해당 유저를 반환한다.
  *
  * @param   {NextApiRequest}   req  [req description]
  * @param   {NextApiResponse}  res  [res description]
@@ -19,6 +19,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         res.statusCode = 400;
         return res.send('access_token이 없습니다.');
       }
+      // jwt 에서 userId 추출
       const userId = jwt.verify(accessToken, process.env.JWT_SECRET!);
       // user fs에서 찾아오기
       const user = Data.user.find({ id: Number(userId) });

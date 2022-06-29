@@ -25,6 +25,11 @@ const user = createSlice({
       state = { ...action.payload, isLogged: true };
       return state;
     },
+    // * redux user 초기화하기
+    initUser(state) {
+      state = initialState;
+      return state;
+    },
   },
 });
 

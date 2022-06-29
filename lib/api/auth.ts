@@ -24,3 +24,6 @@ export const loginAPI = (body: { email: string; password: string }) =>
 
 // header.cookie에 token이 있는지 확인 API 요청
 export const meAPI = () => axios.get<UserType>('/api/auth/me');
+
+// 로그아웃 API 요청
+export const logoutAPI = () => axios.delete('/api/auth/logout');

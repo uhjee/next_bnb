@@ -3013,3 +3013,96 @@ components/Header.tsx
 
 
 
+---
+
+## 10.16 로그아웃 하기
+
+로그아웃 시, 처리되야 하는 로직들
+
+1. Cookie의 access_token 제거
+   * httponly 속성이 있어 javascript로 제거 불가 -> logout API 생성 필요
+2. Redux store의 유저 정보 제거 && isLogged를 false로 변경
+
+### 로그아웃 API
+
+pages/api/auth/logout.ts
+
+```typescript
+import { NextApiRequest, NextApiResponse } from 'next';
+
+export default (req: NextApiRequest, res: NextApiResponse) => {
+  try {
+    // * 로그아웃 하기
+    if (req.method === 'DELETE') {
+      // 쿠키 삭제
+      res.setHeader(
+        'Set-Cookie',
+        'access_token=; path=/; expires:Thu, 01 Jan 1970 00:00:00 GMT; httponly',
+      );
+      res.statusCode = 204; // No Content
+      return res.end();
+    }
+  } catch (e) {
+    console.log(e);
+    return res.send(e);
+  }
+  res.statusCode = 405;
+  return res.end();
+};
+```
+
+lib/api/auth.ts
+
+```typescript
+// 로그아웃 API 요청
+export const logoutAPI = () => axios.delete('/api/auth/logout');
+
+```
+
+components/Header.tsx
+
+```tsx
+
+  /**
+   * 로그아웃 처리한다.
+   */
+  const logout = async () => {
+    try {
+      // 01. api를 통해 cookies의 access_token 초기화
+      await logoutAPI();
+      // 02. redux의 user 초기화
+      dispatch(userActions.initUser());
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+// ...
+<div className="header-usermenu-divider" />
+              <li role="presentation" onClick={logout}>
+                로그아웃
+              </li>
+            </ul>
+```
+
+리덕스에서 제거
+
+store/user.ts
+
+```typescript
+// createSlice 함수 호출 - Action 및 reducer 선언 후 생성해줌 Slice 반환
+// Slice 인터페이스는 actions, reducer, getInitailState 등을 속성으로 갖는다.
+const user = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {
+    // ...
+    // * redux user 초기화하기
+    initUser(state) {
+      state = initialState;
+      return state;
+    },
+  },
+});
+```
+
