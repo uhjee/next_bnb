@@ -1,3 +1,4 @@
+import React from 'react';
 import styled, { css } from 'styled-components';
 import { urlToHttpOptions } from 'url';
 import { useSelector } from '../../store';
@@ -50,7 +51,6 @@ const Selector: React.FC<IProps> = ({
   isValid,
   ...props
 }) => {
-
   // 유효성 검사 모드인지 확인 (state.common)
   const validateMode = useSelector(state => state.common.validateMode);
 
@@ -76,4 +76,4 @@ const Selector: React.FC<IProps> = ({
   );
 };
 
-export default Selector;
+export default React.memo(Selector);

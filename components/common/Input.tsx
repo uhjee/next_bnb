@@ -1,3 +1,4 @@
+import React from 'react';
 import styled, { css } from 'styled-components';
 import { useSelector } from '../../store';
 import palette from '../../styles/palette';
@@ -101,4 +102,4 @@ const Input: React.FC<IProps> = ({
   );
 };
 
-export default Input;
+export default React.memo(Input);

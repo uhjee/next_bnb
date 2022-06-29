@@ -94,8 +94,11 @@ const Container = styled.form`
   }
 `;
 
-// 비밀번호 최소 자릿수
-const PASSWORD_MIN_LENGTH = 8;
+// * CONSTANTS
+const PASSWORD_MIN_LENGTH = 8; // 비밀번호 최소 자릿수
+const disabledMonths = ['Month'];
+const disabledDays = ['Day'];
+const disabledYears = ['Year'];
 
 interface IProps {
   closeModal: () => void;
@@ -355,7 +358,7 @@ const SignUpModal: React.FC<IProps> = ({ closeModal }) => {
           <Selector
             options={monthList}
             defaultValue="Month"
-            disabledOptions={['Month']}
+            disabledOptions={disabledMonths}
             value={birthMonth}
             onChange={onChangeBirthMonth}
             isValid={!!birthMonth}
@@ -365,7 +368,7 @@ const SignUpModal: React.FC<IProps> = ({ closeModal }) => {
           <Selector
             options={dayList}
             defaultValue="Day"
-            disabledOptions={['Day']}
+            disabledOptions={disabledDays}
             value={birthDay}
             onChange={onChangeBirthDay}
             isValid={!!birthMonth}
@@ -375,7 +378,7 @@ const SignUpModal: React.FC<IProps> = ({ closeModal }) => {
           <Selector
             options={yearList}
             defaultValue="Year"
-            disabledOptions={['Year']}
+            disabledOptions={disabledYears}
             value={birthYear}
             onChange={onChangeBirthYear}
             isValid={!!birthDay}
