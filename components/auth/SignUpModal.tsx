@@ -358,7 +358,7 @@ const SignUpModal: React.FC<IProps> = ({ closeModal }) => {
           <Selector
             options={monthList}
             defaultValue="Month"
-            disabledOptions={disabledMonths}
+            disabledOptions={['월']}
             value={birthMonth}
             onChange={onChangeBirthMonth}
             isValid={!!birthMonth}
