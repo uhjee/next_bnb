@@ -7,11 +7,13 @@ import {
   useSelector as useReduxSelector,
 } from 'react-redux';
 import common from './common';
+import registerRoom from './registerRoom';
 
 const rootReducer = combineReducers({
   common: common.reducer,
   user: user.reducer,
   auth: auth.reducer,
+  registerRoom: registerRoom.reducer,
 });
 
 // * Store의 타입

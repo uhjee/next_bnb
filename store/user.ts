@@ -2,6 +2,10 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { UserState } from '../types/reduxState';
 import { UserType } from '../types/user';
 
+/**
+ * 로그인된 사용자
+ */
+
 // * 초기 상태값
 const initialState: UserState = {
   id: 0,

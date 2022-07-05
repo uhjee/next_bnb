@@ -1,5 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+/**
+ * 로그인, 회원가입
+ */
+
 // 초기 상태
 const initialState: { authMode: 'signup' | 'login' } = {
   authMode: 'signup',
