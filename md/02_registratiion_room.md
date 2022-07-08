@@ -171,27 +171,107 @@ const Container = styled.div<SelectorContainerProps>`
 
 ## 🏠 11.3 건물 유형 셀렉터
 
+- 큰 범주 건물 유형 : `largeBuildingType`
+- 기본 건물 유형: `buildingType`
+
 components/register/RegisterRoomBuilding.tsx
 
-```tsx
-const RegisterRoomBuilding: FC<RegisterRoomBuildingProps> = () => {
-  return (
-    <Container>
-      <h2>등록할 숙소 종류는 무엇인가요?</h2>
-      <h3>1단계</h3>
-      <div className="register-room-building-selector-wrapper">
-        <Selector
-          type="register"
-          value="하나를 선택해주세요."
-          defaultValue="하나를 선택해주세요."
-          disabledOptions={disabledLargerBuildingTypeOptions}
-          label="우선 범위를 좁혀볼까요?"
-          options={largeBuildingTypeList}
-          onChange={() => {}}
-        />
-      </div>
-    </Container>
-  );
-};
-```
+- 큰 범주 selector 가 변경되면 작은 범주 selector의 options가 변경되어야 함
 
+  - useMemo()를 통해 값을 기억하도록 처리
+
+  - deps에는 largetBuildingType  세팅
+
+    ```tsx
+    // 선택된 건물 유형 options
+      const detailBuildingOptions: [] = useMemo(() => {
+        switch (largeBuildingType) {
+          case '아파트':
+            const { apartmentBuildingTypeList } = require('../../lib/staticData');
+            dispatch(
+              registerRoomActions.setBuildingType(apartmentBuildingTypeList[0]),
+            );
+            return apartmentBuildingTypeList;
+          case '주택':
+            const { houstBuildingTypeList } = require('../../lib/staticData');
+            dispatch(registerRoomActions.setBuildingType(houstBuildingTypeList[0]));
+            return houstBuildingTypeList;
+          case '별채':
+            const {
+              secondaryUnitBuildingTypeList,
+            } = require('../../lib/staticData');
+            dispatch(
+              registerRoomActions.setBuildingType(secondaryUnitBuildingTypeList[0]),
+            );
+            return secondaryUnitBuildingTypeList;
+          case '독특한 숙소':
+            const { uniqueSpaceBuildingTypeList } = require('../../lib/staticData');
+            dispatch(
+              registerRoomActions.setBuildingType(uniqueSpaceBuildingTypeList[0]),
+            );
+            return uniqueSpaceBuildingTypeList;
+          case 'B&B':
+            const { bnbBuildingTypeList } = require('../../lib/staticData');
+            dispatch(registerRoomActions.setBuildingType(bnbBuildingTypeList[0]));
+            return bnbBuildingTypeList;
+          case '부티크 호텔':
+            const {
+              boutiqueHotelBuildingTypeList,
+            } = require('../../lib/staticData');
+            dispatch(
+              registerRoomActions.setBuildingType(boutiqueHotelBuildingTypeList[0]),
+            );
+            return boutiqueHotelBuildingTypeList;
+          default:
+            return [];
+        }
+      }, [largeBuildingType]);
+
+---
+
+## 11.4 라디오 공통 컴포넌트
+
+components/common/RadioGroup.tsx
+
+- 다수의 라디오를 갖고 있는 그룹 컴포넌트
+
+- interface는 `InputHTMLAttributes<HTMLInpuElement>` 를 상속
+
+  ```tsx
+  interface IProps extends InputHTMLAttributes<HTMLInputElement> {
+    label?: string; // 라디오 그룹에 대한 라벨
+    value?: any; // 라디오가 비교해 같으면 true 반환할 값
+    onChange?: (value: any) => void;
+    options?: { label: string; value: any; description?: string }[]; // 하위 라디오
+    isValid?: boolean;
+    errorMessage?: string;
+  }
+  ```
+
+  
+
+---
+
+## 11.5 숙소 유형 라디오 컴포넌트
+
+- 집 전체 value = 'entire'
+- 개인실  value = 'private'
+- 다인실 value = 'public'
+
+
+
+- 타입 단언 -> 이벤트 객체에서 value를 가져왔을 때, Typescript가 타입을 알 수 없으므로 힌트를 준다는 느낌으로 타입 단언
+
+  ```tsx
+    // 숙소 유형 change handler
+    const onChangeRoomtType = (event: string) => {
+      const selected = event;
+      dispatch(
+        registerRoomActions.setRoomType(
+          selected as 'entire' | 'private' | 'public', // 타입 단언
+        ),
+      );
+    };
+  ```
+
+  
