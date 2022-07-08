@@ -274,4 +274,14 @@ components/common/RadioGroup.tsx
     };
   ```
 
-  
+
+---
+
+## 11.6 숙소 등록하기 공통 footer
+
+components/register/RegisterRoomFooter.tsx
+
+- next, prev 버튼 존재
+- next 버튼 클릭 시, 해당 화면 validation check
+  - useValidateMode() 훅 사용
+
