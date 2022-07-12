@@ -158,6 +158,19 @@ const RegisterRoomBuilding: FC<RegisterRoomBuildingProps> = () => {
     dispatch(registerRoomActions.setIsSetUpForGuest(value as boolean));
   };
 
+  // 모든 Redux state가 존재하는지 확인하기
+  const isValid = useMemo(() => {
+    if (
+      !largeBuildingType ||
+      !buildingType ||
+      !roomType ||
+      isSetUpForGuest !== null
+    ) {
+      return false;
+    }
+    return true;
+  }, [largeBuildingType, buildingType, roomType, isSetUpForGuest]);
+
   return (
     <Container>
       <h2>등록할 숙소 종류는 무엇인가요?</h2>
@@ -165,6 +178,7 @@ const RegisterRoomBuilding: FC<RegisterRoomBuildingProps> = () => {
       {/* 큰 범주 건물 Seletor */}
       <div className="register-room-building-selector-wrapper">
         <Selector
+          isValid={!!largeBuildingType}
           type="register"
           defaultValue="하나를 선택해주세요."
           disabledOptions={disabledLargerBuildingTypeOptions}
@@ -177,6 +191,7 @@ const RegisterRoomBuilding: FC<RegisterRoomBuildingProps> = () => {
       {/* 기본 범주 건물 Selector */}
       <div className="register-room-building-selector-wrapper">
         <Selector
+          isValid={!!buildingType}
           type="register"
           disabled={!largeBuildingType}
           label="건물 유형을 선택하세요."
@@ -189,6 +204,7 @@ const RegisterRoomBuilding: FC<RegisterRoomBuildingProps> = () => {
       {buildingType && (
         <div className="register-room-room-type-radio">
           <RadioGroup
+            isValid={!!roomType}
             label="게스트가 묵게 될 숙소 유형을 골라주세요."
             value={roomType}
             options={roomTypeRadioOptions}
@@ -199,6 +215,7 @@ const RegisterRoomBuilding: FC<RegisterRoomBuildingProps> = () => {
       {/* 게스트 전용 숙소인지  */}
       <div className="register-room-is-setup-for-guest-radio">
         <RadioGroup
+          isValid={isSetUpForGuest !== null}
           label="게스트만 사용하도록 만들어진 숙소인가요?"
           value={isSetUpForGuest}
           onChange={onChangeIsSetUpForGuest}
@@ -206,7 +223,7 @@ const RegisterRoomBuilding: FC<RegisterRoomBuildingProps> = () => {
         />
       </div>
       <RegisterRoomFooter
-        isValid={false}
+        isValid={isValid}
         prevHref="/"
         nextHref="/room/register/bedrooms"
       />

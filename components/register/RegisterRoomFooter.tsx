@@ -57,6 +57,7 @@ const RegisterRoomFooter: FC<IProps> = ({
       event.preventDefault();
       setValidateMode(true);
     }
+    console.log('next page');
   };
   return (
     <Container>

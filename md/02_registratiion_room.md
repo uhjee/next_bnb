@@ -285,3 +285,33 @@ components/register/RegisterRoomFooter.tsx
 - next 버튼 클릭 시, 해당 화면 validation check
   - useValidateMode() 훅 사용
 
+---
+
+## 11.7 숙소 등록하기 밸리데이션
+
+components/register/RegisterRoomBuilding.tsx
+
+```javascript
+  // 모든 Redux state가 존재하는지 확인하기
+  const isValid = useMemo(() => {
+    if (
+      !largeBuildingType ||
+      !buildingType ||
+      !roomType ||
+      isSetUpForGuest !== null
+    ) {
+      return false;
+    }
+    return true;
+  }, [largeBuildingType, buildingType, roomType, isSetUpForGuest]);
+
+
+//...
+      </div>
+      <RegisterRoomFooter
+        isValid={isValid}
+        prevHref="/"
+        nextHref="/room/register/bedrooms"
+      />
+    </Container>
+```
